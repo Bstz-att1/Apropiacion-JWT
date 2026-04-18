@@ -1,5 +1,5 @@
 -- Usar la base de datos correcta
-USE inventario_adso;
+USE inventario_adso_3233198;
 
 -- ==========================================
 -- 1. POBLAR CATEGORÍAS (20 Registros)
