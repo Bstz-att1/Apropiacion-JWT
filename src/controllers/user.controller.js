@@ -1,15 +1,16 @@
+import bcrypt from 'bcryptjs';
 import { UserModel } from "../models/user.model.js";
 import { catchAsync } from "../utils/catchAsync.js";
 import { successResponse } from "../utils/response.handler.js";
 
 // 1. Obtener todos los usuarios
-const getUsers = catchAsync(async (req, res) => {
+export const getUsers = catchAsync(async (req, res) => {
     const users = await UserModel.getAll();
     return successResponse(res, 200, "Lista de usuarios", users);
 });
 
 // 2. Obtener usuario por ID
-const getUserById = catchAsync(async (req, res, next) => {
+export const getUserById = catchAsync(async (req, res, next) => {
     const { id } = req.params;
     const user = await UserModel.findById(Number(id));
 
@@ -23,7 +24,7 @@ const getUserById = catchAsync(async (req, res, next) => {
 });
 
 // 2.1 Obtener usuario por documento
-const getUserByDocument = catchAsync(async (req, res, next) => {
+export const getUserByDocument = catchAsync(async (req, res, next) => {
     const { document } = req.params;
     const user = await UserModel.findByDocument(document);
 
@@ -36,29 +37,33 @@ const getUserByDocument = catchAsync(async (req, res, next) => {
     return successResponse(res, 200, "Usuario encontrado correctamente", user);
 });
 
-// 3. Crear usuario (Sin bcrypt por ahora)
-const createUser = catchAsync(async (req, res, next) => {
+// 3. Crear usuario (CON BCRYPT)
+export const createUser = catchAsync(async (req, res, next) => {
     const { name, document, email, password } = req.body;
 
-    // Enviamos los datos tal cual llegan en el body
+    // Hashear la contraseña antes de guardar
+    const salt = await bcrypt.genSalt(20);
+    const hashedPassword = await bcrypt.hash(password, salt);
+
     const scriptUser = await UserModel.create({
         name,
         document,
         email,
-        password_hash: password // Mapeamos 'password' del body a 'password_hash' de la DB
+        password_hash: hashedPassword
     });
 
     return successResponse(res, 201, "Usuario creado correctamente", scriptUser);
 });
 
-// 4. Actualizar usuario (Sin bcrypt por ahora)
-const updateUser = catchAsync(async (req, res, next) => {
+// 4. Actualizar usuario (CON BCRYPT SI CAMBIA PASS)
+export const updateUser = catchAsync(async (req, res, next) => {
     const { id } = req.params;
-    const data = req.body;
+    const data = { ...req.body };
 
-    // Si viene 'password' en el body, lo renombramos a 'password_hash' para el modelo
+    // Si el usuario intenta actualizar su password, la hasheamos
     if (data.password) {
-        data.password_hash = data.password;
+        const salt = await bcrypt.genSalt(20);
+        data.password_hash = await bcrypt.hash(data.password, salt);
         delete data.password;
     }
 
@@ -74,7 +79,7 @@ const updateUser = catchAsync(async (req, res, next) => {
 });
 
 // 5. Eliminar usuario
-const deleteUser = catchAsync(async (req, res, next) => {
+export const deleteUser = catchAsync(async (req, res, next) => {
     const { id } = req.params;
     const isDeleted = await UserModel.delete(Number(id));
 
@@ -86,12 +91,3 @@ const deleteUser = catchAsync(async (req, res, next) => {
 
     return successResponse(res, 200, "Usuario eliminado correctamente");
 });
-
-export {
-    createUser,
-    getUsers,
-    getUserById,
-    getUserByDocument,
-    updateUser,
-    deleteUser
-};
