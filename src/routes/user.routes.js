@@ -5,9 +5,9 @@ import {
     getUserById, 
     getUsers, 
     updateUser 
-} from "../controllers/user.controller";
+} from "../controllers/user.controller.js";
 
-import { validateToken } from "../middlewares/auth.middleware";
+import { validateToken } from "../middlewares/auth.middleware.js";
 
 const userRouter = Router();
 
