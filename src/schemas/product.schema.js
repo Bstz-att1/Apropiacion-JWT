@@ -9,7 +9,7 @@ export const productSchema = z
       })
       .min(3, "El nombre debe tener al menos 3 caracteres"),
 
-    categori_id: z.number({
+    category_id: z.number({
       required_error: "El ID de la categoría es obligatorio",
       invalid_type_error: "El ID de la categoría debe ser un número (no texto ni vacío)"
     })
