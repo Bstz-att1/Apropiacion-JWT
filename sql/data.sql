@@ -169,3 +169,49 @@ INSERT INTO products (id, name, category_id, price) VALUES
 (98, 'Asistente Amazon Echo Dot 5ta Gen', 20, 49.99),
 (99, 'Enchufe Inteligente TP-Link Tapo', 20, 15.00),
 (100, 'Cámara de Seguridad Wyze Cam v3', 20, 35.98);
+
+-- ==========================================
+-- 3. POBLAR ROLES Y PERMISOS
+-- ==========================================
+
+-- Insertar Roles
+INSERT INTO roles (id, name, description) VALUES
+(1, 'ADMIN', 'Acceso total al sistema de inventario'),
+(2, 'WAREHOUSE_MANAGER', 'Gestión de productos y categorías'),
+(3, 'VIEWER', 'Solo consulta de inventario');
+
+-- Insertar Permisos 
+INSERT INTO permissions (id, code, description) VALUES
+(1, 'products.create', 'Permite crear nuevos productos'),
+(2, 'products.update', 'Permite editar productos existentes'),
+(3, 'products.delete', 'Permite eliminar productos'),
+(4, 'categories.manage', 'Gestión total de categorías'),
+(5, 'users.manage', 'Administración de usuarios y roles');
+
+-- ==========================================
+-- 4. VINCULAR ROLES CON PERMISOS 
+-- ==========================================
+
+-- El ADMIN tiene todos los permisos (1 al 5)
+INSERT INTO role_permissions (role_id, permission_id) VALUES 
+(1, 1), (1, 2), (1, 3), (1, 4), (1, 5);
+
+-- El WAREHOUSE_MANAGER solo gestiona productos y categorías
+INSERT INTO role_permissions (role_id, permission_id) VALUES 
+(2, 1), (2, 2), (2, 4);
+
+-- El VIEWER no tiene permisos asignados aquí (se asume solo lectura si no hay permisos de escritura)
+
+-- ==========================================
+-- 5. INSERTAR USUARIOS DE PRUEBA CON SUS ROLES
+-- ==========================================
+
+INSERT INTO users (id, name, document, email, password_hash) VALUES
+(1, 'Admin Principal', '10001', 'admin@inventario.com', '$2b$10$EPf9XbOqWGpjh.Z.E9f2sd7A7.5A7.5A7.5A7.5A7.5A7.5A7.5A7'),
+(2, 'Carlos Vendedor', '20002', 'carlos@inventario.com', '$2b$10$EPf9XbOqWGpjh.Z.E9f2sd7A7.5A7.5A7.5A7.5A7.5A7.5A7.5A7');
+
+-- Usuario 1 es ADMIN
+INSERT INTO user_roles (user_id, role_id) VALUES (1, 1);
+
+-- Carlos (Usuario 2) es WAREHOUSE_MANAGER
+INSERT INTO user_roles (user_id, role_id) VALUES (2, 2);

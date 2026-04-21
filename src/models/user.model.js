@@ -1,3 +1,4 @@
+import { ur } from "zod/locales";
 import pool from "../config/db.js";
 
 export const UserModel = {
@@ -70,3 +71,22 @@ export const UserModel = {
     );
   }
 };
+  // 10. Obtener los permisos (codes) de un usuario basado en sus roles
+  getPermissions: async (userId) => {
+    const query = `
+      SELECT DISTINCT p.code            -- <--- Aquí USAS el alias
+      FROM permissions p                -- <--- AQUÍ defines que 'permissions' se llamará 'p'
+      INNER JOIN role_permissions rp    -- <--- AQUÍ defines que 'role_permissions' se llamará 'rp'
+        ON p.id = rp.permission_id      -- <--- Aquí USAS ambos para comparar
+     INNER JOIN user_roles ur          -- <--- AQUÍ defines que 'user_roles' se llamará 'ur'
+        ON rp.role_id = ur.role_id      
+      WHERE ur.user_id = ?             -- <--- Aquí USAS el alias 'ur'
+    `, [userId];
+    const [rows] = await pool.query(query, [userId]);
+    
+    // Si no hay filas, devolvemos un array vacío (siguiendo la lógica de consistencia)
+    if (rows.length === 0) return [];
+
+    // Mapeamos para devolver un array simple de strings ['permiso.uno', 'permiso.dos']
+    return rows.map(row => row.code)
+  };

@@ -20,10 +20,37 @@ CREATE TABLE categories (
     updated_up TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
 );
 
--- 7. Crear la tabla de Productos
+-- 7. Tabla de Roles (Ej: Admin, Vendedor, Almacenista)
+CREATE TABLE roles (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(50) NOT NULL UNIQUE,
+    description VARCHAR(255)
+);
+
+-- 8. Tabla de Permisos (Ej: products.create, products.delete, categories.update)
+CREATE TABLE permissions (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    code VARCHAR(100) NOT NULL UNIQUE, -- Ejemplo: 'products.upload'
+    description VARCHAR(255)
+);
+
+-- 9. Crear la Tabla de usuarios
+CREATE TABLE users (
+    id INT AUTO_INCREMENT PRIMARY KEY,
+    name VARCHAR(100) NOT NULL,
+    document VARCHAR(20) NOT NULL UNIQUE, 
+    email VARCHAR(150) NOT NULL UNIQUE,
+    password_hash VARCHAR(255) NOT NULL,
+    refresh_token VARCHAR(250),
+    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+);
+
+-- 10. Crear la tabla de Productos
 CREATE TABLE products (
     id INT AUTO_INCREMENT PRIMARY KEY,
     name VARCHAR(100) NOT NULL,
+    price DECIMAL(10, 2) NOT NULL DEFAULT 0,
     category_id INT NOT NULL,
     created_ud TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
     updated_up TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP,
@@ -36,16 +63,20 @@ CREATE TABLE products (
     ON UPDATE CASCADE
 );
 
--- 8. Modificamos la tabla productos para poder almacenar los precios
-ALTER TABLE products ADD COLUMN price DECIMAL(10, 2) AFTER name;
+-- 11. Tabla Intermedia: Usuarios <-> Roles (Un usuario puede tener varios roles)
+CREATE TABLE user_roles (
+    user_id INT NOT NULL,
+    role_id INT NOT NULL,
+    PRIMARY KEY (user_id, role_id),
+    FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE,
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE
+);
 
-CREATE TABLE users (
-    id INT AUTO_INCREMENT PRIMARY KEY,
-    name VARCHAR(100) NOT NULL,
-    document VARCHAR(20) NOT NULL UNIQUE, 
-    email VARCHAR(150) NOT NULL UNIQUE,
-    password_hash VARCHAR(255) NOT NULL,
-    refresh_token VARCHAR(250),
-    created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
-    updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP ON UPDATE CURRENT_TIMESTAMP
+-- 12. Tabla Intermedia: Roles <-> Permisos (Un rol agrupa varios permisos)
+CREATE TABLE role_permissions (
+    role_id INT NOT NULL,
+    permission_id INT NOT NULL,
+    PRIMARY KEY (role_id, permission_id),
+    FOREIGN KEY (role_id) REFERENCES roles(id) ON DELETE CASCADE,
+    FOREIGN KEY (permission_id) REFERENCES permissions(id) ON DELETE CASCADE
 );
