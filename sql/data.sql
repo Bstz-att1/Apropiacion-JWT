@@ -178,15 +178,21 @@ INSERT INTO products (id, name, category_id, price) VALUES
 INSERT INTO roles (id, name, description) VALUES
 (1, 'ADMIN', 'Acceso total al sistema de inventario'),
 (2, 'WAREHOUSE_MANAGER', 'Gestión de productos y categorías'),
-(3, 'VIEWER', 'Solo consulta de inventario');
+(3, 'VENDEDOR', 'Solo consulta de inventario');
 
 -- Insertar Permisos 
+-- 1. Insertar Permisos con nombres consistentes
 INSERT INTO permissions (id, code, description) VALUES
-(1, 'products.create', 'Permite crear nuevos productos'),
-(2, 'products.update', 'Permite editar productos existentes'),
-(3, 'products.delete', 'Permite eliminar productos'),
-(4, 'categories.manage', 'Gestión total de categorías'),
-(5, 'users.manage', 'Administración de usuarios y roles');
+(1, 'products.get', 'Permite listar todos los productos o por ID'),
+(2, 'products.create', 'Permite crear nuevos productos'),
+(3, 'products.update', 'Permite editar productos existentes'),
+(4, 'products.delete', 'Permite eliminar productos'),
+-- Permisos de categorías desglosados como en tus rutas:
+(5, 'categories.get', 'Permite listar todos las categorias o por ID'),
+(6, 'categories.create', 'Permite crear categorías'),
+(7, 'categories.update', 'Permite editar categorías'),
+(8, 'categories.delete', 'Permite eliminar categorías'),
+(9, 'users.manage', 'Administración de usuarios y roles');
 
 -- ==========================================
 -- 4. VINCULAR ROLES CON PERMISOS 
@@ -194,24 +200,30 @@ INSERT INTO permissions (id, code, description) VALUES
 
 -- El ADMIN tiene todos los permisos (1 al 5)
 INSERT INTO role_permissions (role_id, permission_id) VALUES 
-(1, 1), (1, 2), (1, 3), (1, 4), (1, 5);
+(1, 1), (1, 2), (1, 3), (1, 4), (1, 5), (1, 6), (1, 7), (1, 8), (1, 9);
 
 -- El WAREHOUSE_MANAGER solo gestiona productos y categorías
 INSERT INTO role_permissions (role_id, permission_id) VALUES 
-(2, 1), (2, 2), (2, 4);
+(2, 1), (2, 2), (2, 3), (2, 5), (2, 6), (2, 7);
 
--- El VIEWER no tiene permisos asignados aquí (se asume solo lectura si no hay permisos de escritura)
+-- El VENDEDOR SOLO PUEDE VISUALIZAR EL INVENTARIO
+INSERT INTO role_permissions (role_id, permission_id) VALUES 
+(3, 1), (3, 5);
 
 -- ==========================================
 -- 5. INSERTAR USUARIOS DE PRUEBA CON SUS ROLES
 -- ==========================================
 
 INSERT INTO users (id, name, document, email, password_hash) VALUES
-(1, 'Admin Principal', '10001', 'admin@inventario.com', '$2b$10$EPf9XbOqWGpjh.Z.E9f2sd7A7.5A7.5A7.5A7.5A7.5A7.5A7.5A7'),
-(2, 'Carlos Vendedor', '20002', 'carlos@inventario.com', '$2b$10$EPf9XbOqWGpjh.Z.E9f2sd7A7.5A7.5A7.5A7.5A7.5A7.5A7.5A7');
+(1, 'Admin Principal', '10001', 'admin@rincon.com', '$2b$10$EPf9XbOqWGpjh.Z.E9f2sd7A7.5A7.5A7.5A7.5A7.5A7.5A7.5A7'),
+(2, 'Laura Warehouse', '20002', 'laura@rincon.com', '$2b$10$EPf9XbOqWGpjh.Z.E9f2sd7A7.5A7.5A7.5A7.5A7.5A7.5A7.5A7'),
+(3, 'Carlos Vendedor', '30003', 'carlos@rincon.com', '$2b$10$EPf9XbOqWGpjh.Z.E9f2sd7A7.5A7.5A7.5A7.5A7.5A7.5A7.5A7');
 
 -- Usuario 1 es ADMIN
 INSERT INTO user_roles (user_id, role_id) VALUES (1, 1);
 
--- Carlos (Usuario 2) es WAREHOUSE_MANAGER
+-- Laura (Usuario 2) es WAREHOUSE_MANAGER
 INSERT INTO user_roles (user_id, role_id) VALUES (2, 2);
+
+-- Carloss (Usuario 3) es VENDEDOR
+INSERT INTO user_roles (user_id, role_id) VALUES (3, 3);
