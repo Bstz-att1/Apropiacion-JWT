@@ -18,7 +18,6 @@ export const validateToken = catchAsync(async (req, res, next) => {
     }
 
     // 3. Verificar token con utilidad
-    // No pasamos el secreto aquí porque jwt.handler ya lo toma del .env
     const result = verifyJWT(token);
 
     if (!result.valid) {
@@ -29,7 +28,7 @@ export const validateToken = catchAsync(async (req, res, next) => {
 
     const decoded = result.decoded;
 
-    // 4. Verificar que sea tipo access (evita que usen un refreshToken para entrar a rutas)
+    // 4. Verificar que sea tipo access
     if (decoded.type !== 'access') {
         const error = new Error('Acceso denegado: El token no es válido para esta operación');
         error.statusCode = 401;
@@ -37,13 +36,14 @@ export const validateToken = catchAsync(async (req, res, next) => {
     }
 
     // 5. Adjuntar la info del usuario al request (req.user)
-    // Esto permite que el controlador sepa quién hace la petición
+    // Agregamos 'permissions' para que el middleware de autorización pueda leerlos
     req.user = {
         userId: decoded.userId,
         email: decoded.email,
-        document: decoded.document
+        document: decoded.document,
+        permissions: decoded.permissions || [] // <--- CAMBIO CLAVE
     };
 
-    // 6. ¡Todo bien! Continuamos al controlador
+    // 6. ¡Todo bien! Continuamos al siguiente middleware o controlador
     next();
 });
