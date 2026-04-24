@@ -10,16 +10,18 @@ import {
 import { validateSchema } from "../middlewares/validator.middleware.js";
 import { productSchema } from "../schemas/product.schema.js";
 
+// --- IMPORTAMOS LOS GUARDIAS ---
+import { validateToken } from "../middlewares/auth.middleware.js";
+import { checkPermission } from "../middlewares/permission.middleware.js";
+
 const productRouter = Router();
 
-productRouter.get("/", getAllProducts);
+productRouter.use(validateToken);
 
-productRouter.get("/:id", getProductById);
-
-productRouter.post("/", validateSchema(productSchema), createProduct);
-
-productRouter.put("/:id", validateSchema(productSchema), updateProduct);
-
-productRouter.delete("/:id", deleteProduct);
+productRouter.get("/", checkPermission("products.get"),getAllProducts);
+productRouter.get("/:id", checkPermission("products.get") ,getProductById);
+productRouter.post("/", checkPermission("products.create"),validateSchema(productSchema), createProduct);
+productRouter.put("/:id", checkPermission("products.update"),validateSchema(productSchema), updateProduct);
+productRouter.delete("/:id", checkPermission("products.delete"),deleteProduct);
 
 export default productRouter;
