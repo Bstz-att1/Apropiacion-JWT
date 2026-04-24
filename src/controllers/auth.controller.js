@@ -34,11 +34,21 @@ export const loginJWT = catchAsync(async (req, res, next) => {
     }
 
     // --- NUEVO: OBTENER PERMISOS ---
-    // Llamar al método creado para obtener permisos pasándole el ID del usuario
-    const permissions = await UserModel.g;
+    // 1. Obtenemos los permisos desde el modelo
+    const userPermissions = await UserModel.getPermissions(user.id);
 
+    // 2. Extraemos solo los "codes" para la lógica de seguridad (middleware)
+    // Esto genera un array de strings: ['products.get', 'categories.create', ...]
+    const permissionsCodes = userPermissions.map(p => p.code);
+
+    // 3. Generamos el Access Token incluyendo los permisos
     const accessToken = jwt.sign(
-        { userId: user.id, email: user.email, type: 'access' },
+        { 
+            userId: user.id, 
+            email: user.email, 
+            type: 'access',
+            permissions: permissionsCodes // <--- Importante para el middleware
+        },
         process.env.JWT_SECRET,
         { expiresIn: ACCESS_TOKEN_EXPIRY }
     );
@@ -51,7 +61,7 @@ export const loginJWT = catchAsync(async (req, res, next) => {
 
     await UserModel.updateRefreshToken(user.id, refreshToken);
 
-    // --- MODIFICADO: ENVIAR PERMISOS EN LA RESPUESTA ---
+    // 4. Enviamos la respuesta exitosa
     successResponse(res, 200, "Login exitoso", {
         accessToken,
         refreshToken,
@@ -60,7 +70,9 @@ export const loginJWT = catchAsync(async (req, res, next) => {
             name: user.name,
             email: user.email
         },
-        permissions // <--- Reto 1 completado: Aquí viaja el array ['prod.create', ...]
+        // Enviamos el objeto completo (code y description) al frontend 
+        // para que puedan mostrar mensajes amigables al usuario
+        permissions: userPermissions 
     });
 });
 
