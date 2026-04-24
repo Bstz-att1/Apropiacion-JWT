@@ -69,9 +69,8 @@ export const UserModel = {
     await pool.query("UPDATE users SET refresh_token = NULL WHERE id = ?",
       [userId]
     );
-  }
-};
-  // 10. Obtener los permisos (codes) de un usuario basado en sus roles
+  },
+    // 10. Obtener los permisos (codes) de un usuario basado en sus roles
   getPermissions: async (userId) => {
     const query = `
       SELECT DISTINCT p.code            -- <--- Aquí USAS el alias
@@ -89,4 +88,5 @@ export const UserModel = {
 
     // Mapeamos para devolver un array simple de strings ['permiso.uno', 'permiso.dos']
     return rows.map(row => row.code)
-  };
+  }
+};

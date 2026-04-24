@@ -6,6 +6,7 @@ import { catchAsync } from "../utils/catchAsync.js";
 import { successResponse } from "../utils/response.handler.js";
 import { verifyJWT } from "../utils/jwt.handler.js"; 
 
+
 // Configuración de tiempos de expiración
 const ACCESS_TOKEN_EXPIRY = '15m';    
 const REFRESH_TOKEN_EXPIRY = '1d';    
@@ -24,7 +25,6 @@ export const loginJWT = catchAsync(async (req, res, next) => {
         return next(error);
     }
 
-    // Usamos password_hash que es el nombre en la tabla SQL
     const isValid = await bcrypt.compare(password, user.password_hash);
 
     if (!isValid) {
@@ -32,6 +32,10 @@ export const loginJWT = catchAsync(async (req, res, next) => {
         error.statusCode = 401;
         return next(error);
     }
+
+    // --- NUEVO: OBTENER PERMISOS ---
+    // Llamar al método creado para obtener permisos pasándole el ID del usuario
+    const permissions = await UserModel.g;
 
     const accessToken = jwt.sign(
         { userId: user.id, email: user.email, type: 'access' },
@@ -47,6 +51,7 @@ export const loginJWT = catchAsync(async (req, res, next) => {
 
     await UserModel.updateRefreshToken(user.id, refreshToken);
 
+    // --- MODIFICADO: ENVIAR PERMISOS EN LA RESPUESTA ---
     successResponse(res, 200, "Login exitoso", {
         accessToken,
         refreshToken,
@@ -54,7 +59,8 @@ export const loginJWT = catchAsync(async (req, res, next) => {
             id: user.id,
             name: user.name,
             email: user.email
-        }
+        },
+        permissions // <--- Reto 1 completado: Aquí viaja el array ['prod.create', ...]
     });
 });
 
