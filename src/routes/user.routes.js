@@ -7,7 +7,9 @@ import {
     updateUser 
 } from "../controllers/user.controller.js";
 
+// --- IMPORTAMOS LOS GUARDIAS ---
 import { validateToken } from "../middlewares/auth.middleware.js";
+import { checkPermission } from "../middlewares/permission.middleware.js";
 
 const userRouter = Router();
 
@@ -15,18 +17,14 @@ const userRouter = Router();
 userRouter.use(validateToken);
 
 // Obtener todos los usuarios
-userRouter.get("/", getUsers);
-
+userRouter.get("/", checkPermission("users.manage"), getUsers);
 // Obtener un usuario específico por su ID
-userRouter.get("/:id", getUserById);
-
+userRouter.get("/:id", checkPermission("users.manage"), getUserById);
 // Registrar un nuevo usuario
-userRouter.post("/", createUser);
-
+userRouter.post("/", checkPermission("users.manage"), createUser);
 // Actualizar los datos de un usuario existente
-userRouter.put("/:id", updateUser);
-
+userRouter.put("/:id", checkPermission("users.manage"), updateUser);
 // Eliminar un usuario del sistema
-userRouter.delete("/:id", deleteUser);
+userRouter.delete("/:id", checkPermission("users.manage"), deleteUser);
 
 export default userRouter;
